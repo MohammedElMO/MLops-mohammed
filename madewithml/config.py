@@ -1,5 +1,6 @@
 # config.py
 import logging
+import logging.config
 import os
 import sys
 from pathlib import Path
@@ -11,7 +12,7 @@ ROOT_DIR = Path(__file__).parent.parent.absolute()
 LOGS_DIR = Path(ROOT_DIR, "logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 # EFS_DIR = Path(f"/efs/shared_storage/madewithml/{os.environ.get('GITHUB_USERNAME', '')}")
-EFS_DIR = Path(f"D:/mlops/labs/storage")
+EFS_DIR = Path(os.environ.get("EFS_DIR", Path(ROOT_DIR, "efs")))
 try:
     Path(EFS_DIR).mkdir(parents=True, exist_ok=True)
 except OSError:

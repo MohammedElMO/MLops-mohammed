@@ -1,0 +1,25 @@
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: docker/jenkins/Dockerfile
+    container_name: mlopsfull-jenkins
+    user: root
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      JENKINS_OPTS: "--httpPort=8080"
+      PIP_CACHE_DIR: "/tmp/pip_cache"
+    volumes:
+      - .:/workspace/MLOpsFull
+      - jenkins_home:/var/jenkins_home
+      - pip_cache:/tmp/pip_cache
+      - hf_cache:/var/jenkins_home/.cache/huggingface
+      - ray_tmp:/tmp
+
+volumes:
+  jenkins_home:
+  pip_cache:
+  hf_cache:
+  ray_tmp:
