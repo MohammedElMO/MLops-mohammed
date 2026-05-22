@@ -24,6 +24,7 @@ pipeline {
             steps {
                 dir('/workspace/MLOpsFull') {
                     sh '''
+                        git config --global --add safe.directory /workspace/MLOpsFull || true
                         if [ ! -x "$VENV/bin/python" ] || [ ! -x "$VENV/bin/pip" ]; then
                             rm -rf "$VENV"
                             python3.10 -m venv "$VENV"
@@ -70,6 +71,11 @@ pipeline {
             }
             post {
                 always {
+                    sh '''
+                        mkdir -p results logs
+                        cp -f /workspace/MLOpsFull/results/*.json results/ 2>/dev/null || true
+                        cp -f /workspace/MLOpsFull/logs/*.log logs/ 2>/dev/null || true
+                    '''
                     archiveArtifacts artifacts: 'results/*.json, logs/*.log', allowEmptyArchive: true
                 }
             }
@@ -99,7 +105,9 @@ pipeline {
             steps {
                 dir('/workspace/MLOpsFull') {
                     sh '''
-                        GIT_SHA="$(git rev-parse --short HEAD)"
+                        git config --global --add safe.directory /workspace/MLOpsFull || true
+                        GIT_SHA="${GIT_COMMIT:-$(git rev-parse HEAD)}"
+                        GIT_SHA="$(echo "$GIT_SHA" | cut -c1-7)"
                         docker build -t "$IMAGE_NAME:$GIT_SHA" -t "$IMAGE_NAME:ci" .
                     '''
                 }
@@ -114,7 +122,9 @@ pipeline {
                 dir('/workspace/MLOpsFull') {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-token', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_TOKEN')]) {
                         sh '''
-                            GIT_SHA="$(git rev-parse --short HEAD)"
+                            git config --global --add safe.directory /workspace/MLOpsFull || true
+                            GIT_SHA="${GIT_COMMIT:-$(git rev-parse HEAD)}"
+                            GIT_SHA="$(echo "$GIT_SHA" | cut -c1-7)"
                             docker tag "$IMAGE_NAME:$GIT_SHA" "$DOCKERHUB_USERNAME/$IMAGE_NAME:$GIT_SHA"
                             docker tag "$IMAGE_NAME:$GIT_SHA" "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
                             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -129,6 +139,11 @@ pipeline {
 
     post {
         always {
+            sh '''
+                mkdir -p results logs
+                cp -f /workspace/MLOpsFull/results/*.json results/ 2>/dev/null || true
+                cp -f /workspace/MLOpsFull/logs/*.log logs/ 2>/dev/null || true
+            '''
             archiveArtifacts artifacts: 'logs/*.log', allowEmptyArchive: true
         }
     }
