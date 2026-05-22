@@ -11,11 +11,13 @@ services:
     environment:
       JENKINS_OPTS: "--httpPort=8080"
       PIP_CACHE_DIR: "/tmp/pip_cache"
+      HF_HOME: "/tmp/hf_cache"
+      TRANSFORMERS_CACHE: "/tmp/hf_cache"
     volumes:
       - .:/workspace/MLOpsFull
       - jenkins_home:/var/jenkins_home
       - pip_cache:/tmp/pip_cache
-      - hf_cache:/var/jenkins_home/.cache/huggingface
+      - hf_cache:/tmp/hf_cache
       - ray_tmp:/tmp
 
 volumes:

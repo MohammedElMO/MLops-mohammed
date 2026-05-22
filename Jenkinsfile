@@ -13,7 +13,9 @@ pipeline {
         RAY_DEDUP_LOGS = "0"
         TOKENIZERS_PARALLELISM = "false"
         PYTHONUNBUFFERED = "1"
-        VENV = "/tmp/mlopsfull_venv_${env.BUILD_TAG ?: 'local'}"
+        HF_HOME = "/tmp/hf_cache"
+        TRANSFORMERS_CACHE = "/tmp/hf_cache"
+        VENV = "/tmp/mlopsfull_venv"
     }
 
     stages {
@@ -21,11 +23,17 @@ pipeline {
             steps {
                 dir('/workspace/MLOpsFull') {
                     sh '''
-                        rm -rf "$VENV"
-                        python3.10 -m venv "$VENV"
+                        if [ ! -x "$VENV/bin/python" ]; then
+                            python3.10 -m venv "$VENV"
+                        fi
                         . "$VENV/bin/activate"
                         python -m pip install --upgrade pip
-                        pip install -r requirements.txt
+                        if [ ! -f "$VENV/.deps_installed" ] || [ requirements.txt -nt "$VENV/.deps_installed" ]; then
+                            pip install -r requirements.txt
+                            touch "$VENV/.deps_installed"
+                        else
+                            echo "Dependencies already installed; skipping pip install."
+                        fi
                     '''
                 }
             }
