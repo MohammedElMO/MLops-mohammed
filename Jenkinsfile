@@ -9,7 +9,7 @@ pipeline {
     environment {
         GITHUB_USERNAME = "${env.CHANGE_AUTHOR ?: env.BUILD_USER_ID ?: 'jenkins'}"
         EFS_DIR = "${env.WORKSPACE}/efs"
-        RAY_TMPDIR = "/tmp/ray_mlopsfull_${env.BUILD_TAG ?: 'local'}"
+        RAY_TMPDIR = "/tmp/ray_ci"
         RAY_DEDUP_LOGS = "0"
         TOKENIZERS_PARALLELISM = "false"
         PYTHONUNBUFFERED = "1"
