@@ -13,7 +13,7 @@ pipeline {
         RAY_DEDUP_LOGS = "0"
         TOKENIZERS_PARALLELISM = "false"
         PYTHONUNBUFFERED = "1"
-        VENV = ".venv"
+        VENV = "/tmp/mlopsfull_venv_${env.BUILD_TAG ?: 'local'}"
     }
 
     stages {
@@ -21,6 +21,7 @@ pipeline {
             steps {
                 dir('/workspace/MLOpsFull') {
                     sh '''
+                        rm -rf "$VENV"
                         python3.10 -m venv "$VENV"
                         . "$VENV/bin/activate"
                         python -m pip install --upgrade pip
