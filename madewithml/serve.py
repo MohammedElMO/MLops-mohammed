@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 from http import HTTPStatus
 from typing import Dict
 
@@ -19,10 +20,10 @@ app = FastAPI(
 )
 
 
-@serve.deployment(num_replicas="1", ray_actor_options={"num_cpus": 8, "num_gpus": 0})
+@serve.deployment(num_replicas="1", ray_actor_options={"num_cpus": float(os.environ.get("SERVE_NUM_CPUS", "1")), "num_gpus": 0})
 @serve.ingress(app)
 class ModelDeployment:
-    def __init__(self, run_id: str, threshold: int = 0.9):
+    def __init__(self, run_id: str, threshold: float = 0.9):
         """Initialize the model."""
         self.run_id = run_id
         self.threshold = threshold
@@ -74,3 +75,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ray.init(runtime_env={"env_vars": {"GITHUB_USERNAME": os.environ["GITHUB_USERNAME"]}})
     serve.run(ModelDeployment.bind(run_id=args.run_id, threshold=args.threshold), host="0.0.0.0", port=8000)
+    while True:
+        time.sleep(3600)
