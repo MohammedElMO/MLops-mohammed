@@ -13,3 +13,4 @@ mlruns/
 .pytest_cache/
 .coverage
 htmlcov/
+README.md
