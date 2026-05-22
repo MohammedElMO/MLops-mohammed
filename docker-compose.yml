@@ -15,6 +15,7 @@ services:
       TRANSFORMERS_CACHE: "/tmp/hf_cache"
     volumes:
       - .:/workspace/MLOpsFull
+      - /var/run/docker.sock:/var/run/docker.sock
       - jenkins_home:/var/jenkins_home
       - pip_cache:/tmp/pip_cache
       - hf_cache:/tmp/hf_cache

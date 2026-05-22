@@ -8,6 +8,7 @@ RUN apt-get update \
         bzip2 \
         ca-certificates \
         curl \
+        docker.io \
         git \
         procps \
     && rm -rf /var/lib/apt/lists/*

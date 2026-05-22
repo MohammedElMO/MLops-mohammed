@@ -16,6 +16,7 @@ pipeline {
         HF_HOME = "/tmp/hf_cache"
         TRANSFORMERS_CACHE = "/tmp/hf_cache"
         VENV = "/tmp/mlopsfull_venv"
+        IMAGE_NAME = "mlopsfull"
     }
 
     stages {
@@ -84,6 +85,43 @@ pipeline {
                         . "$VENV/bin/activate"
                         python -c "from madewithml.serve import app, ModelDeployment; print('serve imports ok')"
                     '''
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            when {
+                anyOf {
+                    changeRequest target: 'main'
+                    branch 'main'
+                }
+            }
+            steps {
+                dir('/workspace/MLOpsFull') {
+                    sh '''
+                        GIT_SHA="$(git rev-parse --short HEAD)"
+                        docker build -t "$IMAGE_NAME:$GIT_SHA" -t "$IMAGE_NAME:ci" .
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            when {
+                branch 'main'
+            }
+            steps {
+                dir('/workspace/MLOpsFull') {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-token', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                        sh '''
+                            GIT_SHA="$(git rev-parse --short HEAD)"
+                            docker tag "$IMAGE_NAME:$GIT_SHA" "$DOCKERHUB_USERNAME/$IMAGE_NAME:$GIT_SHA"
+                            docker tag "$IMAGE_NAME:$GIT_SHA" "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+                            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                            docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:$GIT_SHA"
+                            docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+                        '''
+                    }
                 }
             }
         }
