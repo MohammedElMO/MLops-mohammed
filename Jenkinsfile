@@ -23,11 +23,11 @@ pipeline {
             steps {
                 dir('/workspace/MLOpsFull') {
                     sh '''
-                        if [ ! -x "$VENV/bin/python" ]; then
+                        if [ ! -x "$VENV/bin/python" ] || [ ! -x "$VENV/bin/pip" ]; then
+                            rm -rf "$VENV"
                             python3.10 -m venv "$VENV"
                         fi
                         . "$VENV/bin/activate"
-                        python -m pip install --upgrade pip
                         if [ ! -f "$VENV/.deps_installed" ] || [ requirements.txt -nt "$VENV/.deps_installed" ]; then
                             pip install -r requirements.txt
                             touch "$VENV/.deps_installed"
